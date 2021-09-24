@@ -8,16 +8,13 @@ import numpy as np
 import pandas as pd
 from gensim.models import KeyedVectors
 
-from codenames.game.base import TeamColor, HinterGameState, Hint, Board, CardColor, Card
+from codenames.game.base import TeamColor, HinterGameState, Hint, Board, CardColor, Card, Similarity, WordGroup
 from codenames.game.player import Hinter
 from codenames.solvers.utils.algebra import cosine_distance
-from codenames.solvers.utils.model_loader import load_language
-from codenames.solvers.utils.models import Similarity
 from codenames.utils import wrap
+from language_data.model_loader import load_language
 
 log = logging.getLogger(__name__)
-
-WordGroup = Tuple[str, ...]
 
 
 def should_filter_word(word: str, filter_expressions: Iterable[str]) -> bool:
@@ -54,11 +51,11 @@ class ProposalThresholds:
 # min_distance_opponent:  high = less results
 # min_distance_black:     high = less results
 DEFAULT_THRESHOLDS = ProposalThresholds(
-    min_frequency=0.9,  # Can't be less common then X.
-    max_distance_group=0.24,  # Can't be far from the group more then X.
-    min_distance_gray=0.27,  # Can't be closer to gray then X.
-    min_distance_opponent=0.3,  # Can't be closer to opponent then X.
-    min_distance_black=0.32,  # Can't be closer to black then X.
+    min_frequency=0.85,  # Can't be less common then X.
+    max_distance_group=0.25,  # Can't be far from the group more then X.
+    min_distance_gray=0.26,  # Can't be closer to gray then X.
+    min_distance_opponent=0.28,  # Can't be closer to opponent then X.
+    min_distance_black=0.30,  # Can't be closer to black then X.
 )
 
 
@@ -79,6 +76,19 @@ class Proposal:
     @property
     def card_count(self) -> int:
         return len(self.word_group)
+
+    @property
+    def detailed_string(self) -> str:
+        return (
+            f"Proposal(word_group={self.word_group}, "
+            f"hint_word={self.hint_word}, "
+            f"hint_word_frequency={self.hint_word_frequency:.3f}, "
+            f"distance_group={self.distance_group:.3f}, "
+            f"distance_gray={self.distance_gray:.3f}, "
+            f"distance_opponent={self.distance_opponent:.3f}, "
+            f"distance_black={self.distance_black:.3f}, "
+            f"grade={self.grade:.3f})"
+        )
 
 
 def calculate_proposal_grade(proposal: Proposal) -> float:
@@ -219,6 +229,17 @@ class NaiveProposalsGenerator:
         return proposals
 
 
+def pick_best_proposal(proposals: List[Proposal]) -> Proposal:
+    if len(proposals) == 0:
+        raise NoProposalsFound()
+    proposals.sort(key=lambda proposal: -proposal.grade)
+    best_5_repr = "\n".join(str(p) for p in proposals[:5])
+    log.info(f"Best 5 proposals: \n{best_5_repr}")
+    best_proposal = proposals[0]
+    log.info(f"Picked proposal: {best_proposal.detailed_string}")
+    return best_proposal
+
+
 class NaiveHinter(Hinter):
     def __init__(
         self,
@@ -236,16 +257,6 @@ class NaiveHinter(Hinter):
     def notify_game_starts(self, language: str, board: Board):
         self.model = load_language(language=language)
 
-    def pick_best_proposal(self, proposals: List[Proposal]) -> Proposal:
-        if len(proposals) == 0:
-            raise NoProposalsFound()
-        proposals.sort(key=lambda proposal: -proposal.grade)
-        best_5_repr = "\n".join(str(p) for p in proposals[:5])
-        log.info(f"Best 5 proposals: \n{best_5_repr}")
-        best_proposal = proposals[0]
-        log.info(f"Picked proposal: {repr(best_proposal)}")
-        return best_proposal
-
     def pick_hint(self, game_state: HinterGameState, thresholds_filter_active: bool = True) -> Hint:
         proposal_generator = NaiveProposalsGenerator(
             model=self.model,
@@ -256,7 +267,7 @@ class NaiveHinter(Hinter):
         )
         proposals = proposal_generator.generate_proposals(self.max_group_size)
         try:
-            proposal = self.pick_best_proposal(proposals=proposals)
+            proposal = pick_best_proposal(proposals=proposals)
             return Hint(proposal.hint_word, proposal.card_count)
         except NoProposalsFound:
             log.warning("No legal proposals found.")
