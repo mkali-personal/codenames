@@ -25,7 +25,9 @@ def cosine_similarity(
         return cosine_similarity_with_vector(u, v)  # type: ignore
 
 
-def cosine_distance(u: np.ndarray, v: Union[np.ndarray, Sequence[np.ndarray]]) -> Union[np.ndarray, float]:  # type: ignore
+def cosine_distance(
+    u: np.ndarray, v: Union[np.ndarray, Sequence[np.ndarray]]
+) -> Union[np.ndarray, float]:  # type: ignore  # noqa
     return (1 - cosine_similarity(u, v)) / 2  # type: ignore
 
 
@@ -44,7 +46,10 @@ def single_gram_schmidt(v: np.ndarray, u: np.ndarray) -> Tuple[np.ndarray, np.nd
 def geodesic(v, u):
     v, normed_o = single_gram_schmidt(v, u)
     theta = np.arccos(v.T @ u)
-    f = lambda t: np.cos(t * theta) * v + np.sin(t * theta) * normed_o
+
+    def f(t):
+        np.cos(t * theta) * v + np.sin(t * theta) * normed_o
+
     return f
 
 

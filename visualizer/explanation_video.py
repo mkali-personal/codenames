@@ -1,10 +1,38 @@
-from manim import *
-import numpy as np
 import random
-from typing import Callable, List, Optional
-from codenames.solvers.utils.algebra import geodesic, cosine_distance, normalize
-from codenames.solvers.sna_solvers.sna_hinter import step_from_forces, ForceNode  # , opponent_force, friendly_force
+from typing import List
+
+import numpy as np
+from manim import (
+    Text,
+    BLUE,
+    RED,
+    Write,
+    FadeOut,
+    Scene,
+    DOWN,
+    LEFT,
+    BLACK,
+    IN,
+    Line,
+    PI,
+    TAU,
+    Rectangle,
+    DARK_BROWN,
+    GREEN_E,
+    ParametricFunction,
+    UL,
+    ThreeDScene,
+    DEGREES,
+    ThreeDAxes,
+    Sphere,
+    ValueTracker,
+    Create,
+    linear,
+)
 from scipy.interpolate import interp1d
+
+from codenames.solvers.sna_solvers.sna_hinter import step_from_forces  # opponent_force, friendly_force  # type: ignore
+from codenames.solvers.utils.algebra import geodesic, cosine_distance, normalize
 
 
 def random_ints(n: int, k: int) -> List[int]:
@@ -32,7 +60,7 @@ def generate_random_subsets(elements_list: List, average_subset_size: int) -> Li
 
 def generate_cluster_connections(cluster_vectors: List[np.ndarray]) -> List[ParametricFunction]:
     n = len(cluster_vectors)
-    connections_list = []
+    connections_list: List[ParametricFunction] = []
     if n < 2:
         return connections_list
     for i in range(n - 1):
@@ -63,7 +91,7 @@ def text_len_to_time(text, min_time=2, seconds_per_char=0.1):
     return np.max([min_time, n * seconds_per_char])
 
 
-def enrich_nodes(centroid, nodes_list):  #:List[ForceNode,...]
+def enrich_nodes(centroid, nodes_list):  # :List[ForceNode,...]
     nodes = []
     for node in nodes_list:
         d = cosine_distance(centroid, node.force_origin)
@@ -115,7 +143,6 @@ TEACHER_VEC = polar_to_cartesian(SPHERE_RADIUS, 0.3 * PI, -0.2 * PI)
 vectors_list = [SKI_VEC, WATER_VEC, BEACH_VEC, PARK_VEC, JUPITER_VEC, NEWTON_VEC, TEACHER_VEC]
 
 generate_random_connections(vectors_list)
-
 
 labels_list = ["ski", "water", "beach", "park", "jupiter", "newton", "teacher"]
 words_list_len = len(vectors_list)
@@ -232,7 +259,7 @@ class KalirmozExplanation(ThreeDScene):
 
         theta = 30 * DEGREES
         phi = 75 * DEGREES
-        seconds_per_character = 0.02
+        # seconds_per_character = 0.02
         axes = ThreeDAxes(
             x_range=[-1.5, 1.5, 1], y_range=[-1.5, 1.5, 1], z_range=[-1.5, 1.5, 1], x_length=8, y_length=8, z_length=8
         )
@@ -240,7 +267,11 @@ class KalirmozExplanation(ThreeDScene):
             center=(0, 0, 0), radius=SPHERE_RADIUS, resolution=(20, 20), u_range=[0.001, PI - 0.001], v_range=[0, TAU]
         ).set_opacity(0.3)
 
-        text_box = Rectangle(color=DARK_BROWN, fill_color=BLACK, fill_opacity=1, height=7.0, width=5.0).to_edge(LEFT).shift(0.2*LEFT)
+        text_box = (
+            Rectangle(color=DARK_BROWN, fill_color=BLACK, fill_opacity=1, height=7.0, width=5.0)
+            .to_edge(LEFT)
+            .shift(0.2 * LEFT)
+        )
         self.add_fixed_in_frame_mobjects(text_box)
         self.add(text_box)
         arrows_list = [Line(start=[0, 0, 0], end=vector) for vector in vectors_list]  # stroke_width=ARROWS_THICKNESS
@@ -344,9 +375,7 @@ class KalirmozExplanation(ThreeDScene):
         # self.write_3d_text(scr["As can be seen3..."])
         # self.animate_random_connections(vectors_list, 10, 0.3)
 
-    def animate_physical_system(
-        self, starting_point: np.array, nodes_list, num_of_iterations=10, arc_radians=0.01
-    ):  #:List[np.array,...]
+    def animate_physical_system(self, starting_point: np.ndarray, nodes_list, num_of_iterations=10, arc_radians=0.01):
         trajectory = record_trajectory(
             starting_point=starting_point,
             nodes_list=nodes_list,
@@ -366,7 +395,7 @@ class KalirmozExplanation(ThreeDScene):
         #         force.set_color(BLUE)
         #     else:
         #         force.set_color(RED)
-        #     force.add_updater(lambda x, i=i: x.become(geodesic_object(node.force_origin, normalize(trajectory_interp(t.get_value())))))
+        #     force.add_updater(lambda x, i=i: x.become(geodesic_object(node.force_origin, normalize(trajectory_interp(t.get_value())))))  # noqa
         #     forces.append(force)
         park_force = geodesic_object(PARK_VEC, normalize(centroid.get_end())).set_color(RED)
         park_force.add_updater(
