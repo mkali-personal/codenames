@@ -200,7 +200,7 @@ BOARD_WORDS = [
     "gymnast",
 ]
 
-CARDS_ANNOTATION_DURATION = 0.5
+CARDS_ANNOTATION_DURATION = 1
 CARDS_SCALING_FACTOR = 1.3
 RED_CARDS_INDICES = [0, 4, 9, 10, 14, 18, 22, 24]
 BLUE_CARDS_INDICES = [1, 2, 6, 8, 11, 16, 17, 20, 23]
@@ -294,22 +294,22 @@ class KalirmozExplanation(ThreeDScene):
 
         progression_dict = generate_progression_dict(TITLES_TEXTS)
 
-        self.scene_intro()
+        # self.scene_intro()
+        #
+        # self.advance_progress_markers(progression_dict, 0, 0)
+        #
+        # self.scene_game_rules()
 
-        self.advance_progress_markers(progression_dict, 0, 0)
+        # self.advance_progress_markers(progression_dict, 1)
 
-        self.scene_game_rules()
+        # self.scene_word2vec_explanation()
 
-        self.advance_progress_markers(progression_dict, 1)
+        # self.advance_progress_markers(progression_dict, 2, extra_waiting_time=5)
 
-        self.scene_word2vec_explanation()
+        # self.scene_sphere()
 
-        self.advance_progress_markers(progression_dict, 2, extra_waiting_time=5)
-
-        self.scene_sphere()
-
-        self.add_fixed_orientation_mobjects(progression_dict)
-        self.remove(progression_dict)
+        # self.add_fixed_orientation_mobjects(progression_dict)
+        # self.remove(progression_dict)
         self.advance_progress_markers(progression_dict, 3)
 
         self.scene_guesser_views()
@@ -337,14 +337,14 @@ class KalirmozExplanation(ThreeDScene):
             FadeIn(red_guesser, shift=DOWN),
         )
         # self.add(board, blue_hinter, blue_guesser, red_hinter, red_guesser)
-        self.dynamic_wait(1)
+        self.dynamic_wait(4)
         self.annotate_objects([blue_hinter, blue_guesser], 1.3, 1)
         self.annotate_objects([red_hinter, red_guesser], 1.3, 1)
-        self.dynamic_wait(4)
-        self.annotate_objects([blue_hinter, red_hinter], 1.3, 1)
-        self.dynamic_wait(2)
-        self.annotate_objects([blue_guesser, red_guesser], 1.3, 1)
-        self.dynamic_wait(7)
+        self.dynamic_wait(2.5)
+        self.annotate_objects([blue_hinter, red_hinter], 1.3, 1.5)
+        self.dynamic_wait(1.5)
+        self.annotate_objects([blue_guesser, red_guesser], 1.3, 1.5)
+        self.dynamic_wait(5)
         self.play(DrawBorderThenFill(board))
         self.dynamic_wait(3)
 
@@ -369,7 +369,7 @@ class KalirmozExplanation(ThreeDScene):
 
         self.play(FadeOut(blue_hinter_bubble), FadeOut(blue_hinter_text))
 
-        red_hinter_bubble, red_hinter_text = self.animate_hint(red_hinter, "water", 4)
+        red_hinter_bubble, red_hinter_text = self.animate_hint(red_hinter, "water", 4, final_wait=1.5)
 
         red_guesser_bubble = self.animate_guess(
             board=board,
@@ -408,12 +408,12 @@ class KalirmozExplanation(ThreeDScene):
 
         self.remove_everything()
 
-    def animate_hint(self, hinter_obj, hint_word, hint_number):
+    def animate_hint(self, hinter_obj, hint_word, hint_number, final_wait=3):
         hinter_bubble = SVG.bubble().scale(0.5).next_to(hinter_obj, UP)
         hinter_text = Text(f'"{hint_word}", {hint_number}', font_size=18).move_to(hinter_bubble).shift(UP * 0.2)
         self.play(FadeIn(hinter_bubble, shift=DOWN))
         self.play(Write(hinter_text))
-        self.dynamic_wait(3)
+        self.dynamic_wait(final_wait)
         return hinter_bubble, hinter_text
 
     def animate_guess(
@@ -609,11 +609,11 @@ class KalirmozExplanation(ThreeDScene):
     def scene_guesser_views(self):
         # self.plot_guesser_view_chart(r"visualizer\graphs_data\planets.csv", "planets (2 cards)", waiting_time=26)
         self.plot_guesser_view_chart(
-            r"visualizer\graphs_data\redevelopment_fine.csv", "redevelopment (2 cards)", waiting_time=26
+            r"visualizer\graphs_data\redevelopment_fine.csv", "redevelopment (2 cards)", waiting_time=28
         )
         # self.plot_guesser_view_chart(r"visualizer\graphs_data\dark_bad_choose_it.csv", 'dark (2 cards)', waiting_time=21)
-        # self.plot_guesser_view_chart(r"visualizer\graphs_data\apollo_bad.csv", 'apollo')
-        self.plot_guesser_view_chart(r"visualizer\graphs_data\rhino_bad.csv", "rhino (2 cards)", waiting_time=21)
+        self.plot_guesser_view_chart(r"visualizer\graphs_data\apollo_bad.csv", "apollo (2 cards)", waiting_time=18)
+        # self.plot_guesser_view_chart(r"visualizer\graphs_data\rhino_bad.csv", "rhino (2 cards)", waiting_time=21)
         # self.plot_guesser_view_chart(r"visualizer\graphs_data\rhino_bad.csv", 'rhino')
         # self.plot_guesser_view_chart(r"visualizer\graphs_data\advice.csv", "advice")
         # self.plot_guesser_view_chart(r"visualizer\graphs_data\beneath_good.csv", 'beneath')
@@ -650,7 +650,7 @@ class KalirmozExplanation(ThreeDScene):
         self.annotate_objects([board[i] for i in RED_CARDS_INDICES], CARDS_SCALING_FACTOR, CARDS_ANNOTATION_DURATION)
         self.annotate_objects([board[i] for i in BLACK_CARD_INDEX], CARDS_SCALING_FACTOR, CARDS_ANNOTATION_DURATION)
         self.annotate_objects([board[i] for i in GRAY_CARDS_INDICES], CARDS_SCALING_FACTOR, CARDS_ANNOTATION_DURATION)
-        self.dynamic_wait(9)
+        self.dynamic_wait(7)
         self.play(*[board[i][0].animate.set_color(CARDS_FILL_COLOR) for i in range(25)])
         self.dynamic_wait(14)
 

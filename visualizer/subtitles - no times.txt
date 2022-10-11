@@ -1,5 +1,5 @@
 This is an explanation video for
-an Algorithm to play the board
+an algorithm to play the board
 game "Codenames", written
 by Michael and Asaf Kali.
 Part 1: The board game Codenames
@@ -7,9 +7,9 @@ Let's first describe the game.
 In the game, two groups are competing eachother
 - The blue team and the red team
 In each group there are two types
-of players: The Spymaster, and the
-field operatives, which are often played
-by multiple people
+of players: The Spymaster on the right,
+and the field operatives on the left - DO NOT PAUSE
+which are often played by multiple people
 On the board there are
 25 cards, each one with a
 word witten on in.
@@ -25,10 +25,10 @@ have all the cards of their color exposed
 to do so, in each turn the Spymaster
 chooses some of the cards of his color
 to hint about.
-He then hint about them with a
+He then hints about them with a
 single word, that somehow relates
 to each of them, and adds the
-number of cards he is hinting about
+number of cards he is hinting about.
 Then, the field operatives guess which
 cards did the Spymaster hint about.
 with each guess, The true color
@@ -41,35 +41,37 @@ was the card he hinted about or not.
 The Spymaster can try to
 hint at many cards at once, but
 if the Field Operators accidentally
+
 choose a card from the
 opponent’s color or a
 Bystander's gray card,
 they loose their turn
 If they hit the black Assassin’s
 card - The team immediately looses.
-
 On the screen, the blue
 guesser mistakes "costume" as
 a hint for "ninja", and the
 blue team looses since
 "ninja" is the black Assassin.
+
 Part 2: The Word2Vec Model
-The Algorithm in discussion
+Our algorithm
 uses a pre-trained Word2Vec model
 for it's linguistic knowledge.
 The Word2Vec model uses a big text
 corpus such as Wikipedia or news sites
 to assign each word in the
-vocabulary with an n-dimensional vector
+vocabulary with an n-dimensional vector.
 The vectors of the various words are
 designed such that words that tend to
 appear in the same context will
 have small angle between them, while
 distant, unrelated words will
 have a larger angle between them.
+
 Part 3: The Codenames Algorithm
 Now we will describe
-the algorithm itself
+the algorithm itself.
 To see the problem from
 the algorithm's perspective,
 We will visualize the cards
@@ -78,8 +80,8 @@ unit vectors in a 3-d space.
 In each turn, the first task
 of the hinter is to find a
 proper subset of words
-(usually two to four words)
-on which to hint
+(usually two to four words) - DO NOT PAUSE
+on which he will hint.
 Two methods of clustering
 where implemented.
 In the first clustering method, the
@@ -90,24 +92,25 @@ This graph is divided into communities
 using the Louvain SNA algorithm, and each
 community is taken as an optional
 cluster of words to hint about in the next step.
-The cluster are represented here
+The clusters are represented here
 as groups of connected vectors.
-A second, "greedy" method, simply
+A second, "brute-forch" method, simply
 iterates over all combinations of words to
 choose the best one.
 The second task of the hinter
 is to choose a hinting word for
 each of the proposed clusters.
 In order to find a hinting word for a cluster,
-the Spymaster (hinter) generates a "centroid"
+the hinter generates a "centroid"
 vector for the cluster, to
 search real words near by.
 An initial "centroid" is proposed as the
-Center of Mass of the cluster's vectors
+Center of Mass of the cluster's vectors.
 Ideally, the centroid would be close to all
 the cluster's words and far from words of
 other colors. (where "close" and
 "far") are considered in the angle metric.
+
 To optimize the centroid, the nearby words in
 the board (from  all colors) are considered
 as a physical system, where every
@@ -124,7 +127,7 @@ spring, where if the centroid is too far,
 the spring can be "torn" apart and is no
 longer considered as part of the cluster.
 This is done in order to allow
-outliers in the cluster to be throwen away.
+outliers in the cluster to be thrown away.
 After convergence, all there
 needs to be done is to pick up a word
 near-by the optimized
@@ -136,27 +139,28 @@ chosen as the cluster's hint
 The best hint from all clusters
 is picked and being hinted to the
 Field Operators (the guessers).
+
 Part 4: Examples
 Here is an example of a well
-hinted word by the algorithm
+hinted word by the algorithm.
 On the X-axis, lay the unrevealed
-cards, when the Spymaster hinted:
+cards, when the Spymaster (hinter) gave the hint:
 "redevelopment, 2 cards".
 On the Y-axis, you can see the
 cosine distance between the hinted
 word "redevelopment" and the unrevealed cards.
-as can be seen when the Field
-Operators search for the closest words
+As can be seen, when the Field
+Operators search for the closest words to - DO NOT STOP
 to "redevelopment", "park" and "skyscrapper"
 are significantly closer then the
 other cards, and thus those
 will be his two guesses.
 Here is another example
 of a less successful hint
-As can be seen, the word
-"frog" is close to
-the hint "rhino", almost as
-the desired word "parrot"
+As can be seen, the gray word
+"earth" is semantically close to
+the hint "apollo", almost as
+much the desired blue word "moon"
 This might confuse the
 guesser, and thus this hint will
 not be picked.
